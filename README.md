@@ -1,5 +1,11 @@
 # Customer-personality-analysis
 
+<p align="center">
+  <img src="./customers_ressources/clusters_space.png" alt="Clusters Space Header" width="100%">
+</p>
+
+---
+
 ## 1. Introduction à la Classification Non Supervisée
 
 Dans un marché saturé, la segmentation démographique classique (âge, genre) ne suffit plus. Ce projet de **Customer Personality Analysis** utilise le **Machine Learning non supervisé** (clustering) pour regrouper dynamiquement les clients selon leurs comportements d'achat réels. 
