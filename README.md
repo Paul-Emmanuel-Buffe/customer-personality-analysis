@@ -95,3 +95,58 @@ $$\Delta(C_i, C_j) = \frac{|C_i| \cdot |C_j|}{|C_i| + |C_j|} ||\mu_i - \mu_j||^2
 * **$||\mu_i - \mu_j||^2$ :** La distance au carré entre les deux centres (centroïdes) des groupes.
 
 > **Objectif de la formule :** Elle minimise l'étalement du nouveau groupe en favorisant la fusion de groupes déjà compacts et de taille similaire.
+
+Voici la section complète à intégrer directement dans ton fichier `.md`. Elle respecte la structure rigoureuse que nous avons mise en place, avec les formules formelles et l'explication pas à pas de chaque symbole.
+
+---
+
+## 3. Sélection du Nombre Optimal de Clusters et Mesure de Qualité
+
+Dans un contexte d'apprentissage non supervisé, les données ne possèdent pas d'étiquettes de vérité terrain (*ground truth*). L'analyste doit donc s'appuyer sur des critères mathématiques internes pour évaluer la pertinence du découpage et choisir la configuration idéale.
+
+---
+
+### A. La Méthode du Coude (Elbow Method)
+
+Cette méthode est principalement utilisée pour déterminer la valeur optimale du nombre de clusters $k$ dans les algorithmes de partitionnement comme le K-Means.
+
+#### 1. Principe
+
+L'algorithme K-Means est exécuté plusieurs fois en faisant varier $k$ (par exemple de 1 à 10). Pour chaque valeur de $k$, on calcule l'**Inertie intra-classe totale** ($W$). On trace ensuite la courbe de l'inertie en fonction de $k$.
+L'inertie diminue naturellement à chaque fois que l'on ajoute un cluster. On recherche visuellement le point d'inflexion de la courbe (le "coude") : c'est le point où l'ajout d'un cluster supplémentaire n'apporte plus de gain significatif en termes de compacité.
+
+#### 2. Rappel de la formule de l'Inertie ($W$)
+
+$$W = \sum_{i=1}^{k} \sum_{x \in C_i} ||x - \mu_i||^2$$
+
+* **$W$ :** L'inertie intra-classe globale. Plus elle est proche de 0, plus les clusters sont compacts.
+* **$k$ :** Le nombre de clusters testé.
+* **$C_i$ :** Le cluster numéro $i$.
+* **$x$ :** Un point de données affecté au cluster $C_i$.
+* **$\mu_i$ :** Le centroïde (centre géométrique) du cluster $C_i$.
+* **$||x - \mu_i||^2$ :** La distance euclidienne au carré entre le point et son centre.
+
+---
+
+### B. Le Score de Silhouette (Silhouette Coefficient)
+
+Le score de Silhouette est une mesure globale et individuelle de la qualité du clustering. Il évalue si un point est correctement positionné au sein de son groupe par rapport aux groupes voisins.
+
+#### 1. Formule du coefficient pour un individu $i$
+
+$$s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}$$
+
+#### 2. Explication détaillée des symboles
+
+* **$s(i)$ :** Le score de silhouette de l'observation $i$. Ce score est toujours compris entre -1 et 1.
+* **$a(i)$ (La Cohésion) :** La distance moyenne entre l'observation $i$ et tous les autres points appartenant au **même** cluster. Plus $a(i)$ est petit, plus l'observation est proche de ses pairs (groupe compact).
+* **$b(i)$ (La Séparation) :** La distance moyenne entre l'observation $i$ et tous les points du cluster **voisin le plus proche** (le cluster dont la distance moyenne avec $i$ est minimale, hors de son propre groupe). Plus $b(i)$ est grand, plus l'observation est isolée des autres groupes.
+* **$\max(a(i), b(i))$ :** Le facteur de normalisation. Il prend la valeur la plus grande entre $a(i)$ et $b(i)$ pour s'assurer que le résultat final reste strictement confiné dans l'intervalle $[-1, 1]$.
+
+#### 3. Interprétation du Score Global
+
+Le score global du modèle est la moyenne des scores $s(i)$ de toutes les observations.
+
+* **Proche de 1 :** Les clusters sont denses, bien séparés et chaque point est à sa place.
+* **Proche de 0 :** Les clusters se chevauchent de manière importante ; les points sont situés sur les frontières de décision.
+* **Proche de -1 :** Les points ont été affectés au mauvais cluster (ils sont plus proches du groupe voisin que du leur).
