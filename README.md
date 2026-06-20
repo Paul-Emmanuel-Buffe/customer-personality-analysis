@@ -1,6 +1,6 @@
 # Customer Personality Analysis
 
-![Clusters Space Header](clusters_space.png)
+![Clusters Space Header](customers_ressources/clusters_space.png)
 
 ---
 
