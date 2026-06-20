@@ -1,4 +1,4 @@
-# Customer-personality-analysis
+# Customer Personality Analysis
 
 <p align="center">
   <img src="./customers_ressources/clusters_space.png" alt="Clusters Space Header" width="100%">
@@ -29,20 +29,18 @@ La classification non supervisée (ou *clustering*) est une branche du Machine L
 * **Modélisation & Optimisation :** Ajuster les hyperparamètres et valider la qualité des clusters via le **score de Silhouette**.
 * **Déploiement Métier :** Traduire les groupes mathématiques en *personas* et actions marketing concrètes.
 
-
-## Veille Technologique : Classification Non Supervisée
-
 ---
-## 2. Analyse des 3 Algorithmes Étudiés
 
-### 1. K-Means (Partitionnement)
+## 2. Veille Technologique : Analyse des 3 Algorithmes Étudiés
+
+### A. K-Means (Partitionnement)
 
 * **Principe :** On fixe $k$ (le nombre de groupes). L'algorithme place des "points de ralliement" au hasard, puis chaque client rejoint le centre le plus proche. Le centre se déplace ensuite au milieu exact du nouveau groupe formé. On répète jusqu'à ce que les centres ne bougent plus.
 * **Force :** Haute performance sur les grands jeux de données ; interprétabilité simple.
 * **Limite :** $k$ doit être défini *a priori* ; vulnérable aux valeurs aberrantes (outliers).
 * **Usage idéal :** Segmentation client.
 
-#### A. Formule de la Distance (Distance Euclidienne)
+#### Formule de la Distance (Distance Euclidienne)
 
 $$dist(p, q) = \sqrt{\sum_{j=1}^{n} (p_j - q_j)^2}$$
 
@@ -54,7 +52,7 @@ $$dist(p, q) = \sqrt{\sum_{j=1}^{n} (p_j - q_j)^2}$$
 * **$(p_j - q_j)$ :** L'écart entre la valeur de la caractéristique $j$ pour le client et la valeur de cette même caractéristique pour le centre.
 * **$^2$ :** L'exposant au carré, qui permet de rendre toutes les différences positives (les écarts négatifs deviennent positifs).
 
-#### B. Formule de l'Inertie (Compacité du groupe)
+#### Formule de l'Inertie (Compacité du groupe)
 
 $$W = \sum_{i=1}^{k} \sum_{x \in C_i} ||x - \mu_i||^2$$
 
@@ -66,7 +64,7 @@ $$W = \sum_{i=1}^{k} \sum_{x \in C_i} ||x - \mu_i||^2$$
 
 ---
 
-### 2. DBSCAN (Basé sur la densité)
+### B. DBSCAN (Basé sur la densité)
 
 * **Principe :** Regroupe les points selon leur densité locale. Les zones clairsemées sont marquées comme "bruit".
 * **Force :** Aucun $k$ à définir ; capable d'identifier des formes non-sphériques complexes.
@@ -84,7 +82,7 @@ $$N_\epsilon(p) = \{q \in D \mid dist(p, q) \le \epsilon\}$$
 
 ---
 
-### 3. CAH (Classification Ascendante Hiérarchique)
+### C. CAH (Classification Ascendante Hiérarchique)
 
 * **Principe :** Approche "bottom-up". Chaque point débute comme un cluster unique. À chaque itération, les deux clusters les plus proches fusionnent.
 * **Force :** Pas besoin de définir $k$ à l'avance ; dendrogramme pour visualiser la hiérarchie.
@@ -102,8 +100,6 @@ $$\Delta(C_i, C_j) = \frac{|C_i| \cdot |C_j|}{|C_i| + |C_j|} ||\mu_i - \mu_j||^2
 
 > **Objectif de la formule :** Elle minimise l'étalement du nouveau groupe en favorisant la fusion de groupes déjà compacts et de taille similaire.
 
-Voici la section complète à intégrer directement dans ton fichier `.md`. Elle respecte la structure rigoureuse que nous avons mise en place, avec les formules formelles et l'explication pas à pas de chaque symbole.
-
 ---
 
 ## 3. Sélection du Nombre Optimal de Clusters et Mesure de Qualité
@@ -117,7 +113,6 @@ Dans un contexte d'apprentissage non supervisé, les données ne possèdent pas 
 Cette méthode est principalement utilisée pour déterminer la valeur optimale du nombre de clusters $k$ dans les algorithmes de partitionnement comme le K-Means.
 
 #### 1. Principe
-
 L'algorithme K-Means est exécuté plusieurs fois en faisant varier $k$ (par exemple de 1 à 10). Pour chaque valeur de $k$, on calcule l'**Inertie intra-classe totale** ($W$). On trace ensuite la courbe de l'inertie en fonction de $k$.
 L'inertie diminue naturellement à chaque fois que l'on ajoute un cluster. On recherche visuellement le point d'inflexion de la courbe (le "coude") : c'est le point où l'ajout d'un cluster supplémentaire n'apporte plus de gain significatif en termes de compacité.
 
