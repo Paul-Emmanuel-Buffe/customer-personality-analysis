@@ -1,9 +1,6 @@
 # Customer Personality Analysis
 
-<p align="center">
-  <img src="/customers_ressources/clusters_space.png" alt="Clusters Space Header" width="100%">
-</p>
-
+![Banner](customers_ressources/clusters_space.png)
 ---
 
 ## 1. Introduction à la Classification Non Supervisée
