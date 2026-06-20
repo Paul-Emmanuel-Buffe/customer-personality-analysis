@@ -1,8 +1,6 @@
 # Customer Personality Analysis
 
-<p align="center">
-  <img src="clusters_space.png" alt="Clusters Space Header" width="100%">
-</p>
+![Clusters Space Header](clusters_space.png)
 
 ---
 
