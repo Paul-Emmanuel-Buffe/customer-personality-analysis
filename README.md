@@ -1,6 +1,6 @@
 # Customer Personality Analysis
 
-![Banner](customers_ressources/clusters_space.png)
+![Banner](customers_ressources\clusters_space.png)
 ---
 
 ## 1. Introduction à la Classification Non Supervisée
