@@ -114,6 +114,7 @@ Cette méthode est principalement utilisée pour déterminer la valeur optimale 
 L'algorithme K-Means est exécuté plusieurs fois en faisant varier $k$ (par exemple de 1 à 10). Pour chaque valeur de $k$, on calcule l'**Inertie intra-classe totale** ($W$). On trace ensuite la courbe de l'inertie en fonction de $k$.
 L'inertie diminue naturellement à chaque fois que l'on ajoute un cluster. On recherche visuellement le point d'inflexion de la courbe (le "coude") : c'est le point où l'ajout d'un cluster supplémentaire n'apporte plus de gain significatif en termes de compacité.
 
+
 #### 2. Rappel de la formule de l'Inertie ($W$)
 
 $$W = \sum_{i=1}^{k} \sum_{x \in C_i} ||x - \mu_i||^2$$
@@ -125,6 +126,7 @@ $$W = \sum_{i=1}^{k} \sum_{x \in C_i} ||x - \mu_i||^2$$
 * **$\mu_i$ :** Le centroïde (centre géométrique) du cluster $C_i$.
 * **$||x - \mu_i||^2$ :** La distance euclidienne au carré entre le point et son centre.
 
+![Clusters Space Header](customers_ressources/elbow_fonctionnement.png)
 ---
 
 ### B. Le Score de Silhouette (Silhouette Coefficient)
@@ -149,3 +151,5 @@ Le score global du modèle est la moyenne des scores $s(i)$ de toutes les observ
 * **Proche de 1 :** Les clusters sont denses, bien séparés et chaque point est à sa place.
 * **Proche de 0 :** Les clusters se chevauchent de manière importante ; les points sont situés sur les frontières de décision.
 * **Proche de -1 :** Les points ont été affectés au mauvais cluster (ils sont plus proches du groupe voisin que du leur).
+
+![Clusters Space Header](customers_ressources/score_silhouette.png)
