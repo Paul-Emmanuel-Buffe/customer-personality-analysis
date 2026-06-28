@@ -292,32 +292,47 @@ if __name__ == "__main__":
 
 ---
 
-### C. Analyse Synthétique des Résultats
+### C. Analyse Synthétique des Résultats à k = 10
 
-L'exécution de ce benchmark met en évidence deux comportements distincts induits par les stratégies d'initialisation des deux modèles.
+L'exécution de ce premier benchmark à $k=10$ met en évidence l'impact des stratégies d'initialisation et introduit la nécessité d'une double évaluation métrique (Inertie + Silhouette).
+
+```
+--------------------------------------------------
+ COMPARAISON DES PERFORMANCES (Pour k = 10)
+-> Inertie K-Means Maison       : 28.29
+-> Inertie K-Means Scikit-Learn : 25.97
+-> Silhouette K-Means Maison    : 0.3078
+-> Silhouette Scikit-Learn      : 0.3180
+--------------------------------------------------
+```
 
 #### 1. Optimisation de l'Inertie et Rôle du Multi-Start
-- **Inertie K-Means Maison :** 28.29
-- **Inertie K-Means Scikit-Learn :** 25.97
+L'algorithme de Scikit-Learn atteint une inertie globale plus faible (25.97 contre 28.29), traduisant des clusters géométriquement plus compacts. Cet écart provient directement du paramètre `n_init=10`. Alors que le modèle personnalisé s'exécute en une seule tentative ("single-shot") soumise au hasard du tirage initial, Scikit-Learn effectue 10 lancements indépendants complets et ne conserve que la meilleure convergence, évitant ainsi le piège des minima locaux.
 
-L'algorithme de Scikit-Learn atteint une inertie globale plus faible, ce qui traduit des clusters géométriquement plus denses et mieux optimisés. Cet écart provient directement du paramètre `n_init=10`. Alors que le modèle personnalisé s'exécute en une seule tentative ("single-shot") dépendante du tirage initialisé par `np.random.seed(42)`, Scikit-Learn effectue 10 lancements indépendants complets et ne conserve que la meilleure convergence. Cette méthode permet d'éviter les pièges des minima locaux, fréquents lorsque la valeur de $k$ est élevée.
+#### 2. Quantification du Surapprentissage par la Silhouette
+L'introduction du score de Silhouette dévoile une **illusion mathématique** : courir après l'inertie la plus basse en augmentant le nombre de groupes fait s'effondrer la qualité du clustering à un score médiocre d'environ **0.31**. La métrique sanctionne la sur-segmentation en prouvant que les 10 clusters créés sont artificiels, trop proches et se chevauchent massivement dans l'espace.
 
-#### 2. Divergence de Frontières et Partage des Données
-L'examen des 10 premiers échantillons révèle une indexation et une répartition structurellement différentes :
+#### 3. Divergence des Frontières de Décision
+L'examen des 10 premiers échantillons confirme cette instabilité géométrique par une indexation et une répartition structurellement différentes :
 - **Labels Maison :** `[5 5 5 5 5 1 5 5 5 5]`
 - **Labels Scikit-Learn :** `[2 8 8 8 2 7 8 2 8 8]`
 
-Au-delà de la simple permutation des numéros de groupes (liée à l'ordre d'attribution des centres au départ), les frontières de décision divergent. Par exemple, Scikit-Learn sépare la première et la deuxième fleur (labels 2 et 8) là où le modèle maison les maintient au sein d'un même groupe (label 5). Le modèle de référence parvient à raffiner la fragmentation des données grâce à des centroïdes initiaux mieux positionnés dans l'espace.
+Au-delà de la simple permutation des numéros de groupes, les frontières de décision divergent (Scikit-Learn sépare la première et la deuxième fleur là où le modèle maison les maintient ensemble). Le modèle industriel affine la fragmentation grâce à des centroïdes initiaux mieux positionnés. Néanmoins, l'écart de Silhouette infime (**0.01**) prouve que la logique mathématique globale du modèle Maison est parfaitement fonctionnelle.
 
 ![Visualisation de la Clusterisation k=10](customers_ressources/graph_clustering_k_10.png)
 
+---
+
 ### D. Arbitrage de k : Entre Illusion Mathématique et Réalité Métier
 
-L'analyse des variations du nombre de clusters met en lumière la nécessité de trouver un équilibre critique entre performance brute et interprétabilité :
+Pour s'extraire du piège de la sur-segmentation, une étude approfondie des différents régimes de partitionnement ($k=2$, $k=3$ et $k=10$) a été menée. Elle met en lumière l'obligation d'arbitrer entre performance brute et pertinence métier.
 
-* **Sous-apprentissage (k trop bas) :** Échoue à capturer la complexité réelle en fusionnant à tort des groupes distincts.
-* **Illusion d'inertie (k trop haut) :** Offre un score d'inertie faussement parfait qui cache un surapprentissage par fragmentation inutile des groupes naturels (ex: $k=10$ sur Iris).
-* **Méthode du coude (k optimal) :** Repère l'inflexion graphique ($k=3$ sur Iris) pour stopper la segmentation au point d'équilibre parfait entre structure réelle et surapprentissage.
+
+#### 2. Analyse des Comportements Émergents
+
+* **Sous-apprentissage ($k$ trop bas) :** À $k=2$, le score de Silhouette culmine à **0.6810** alors que l'inertie est mauvaise. C'est un paradoxe géométrique : le modèle fusionne deux espèces distinctes (Versicolor et Virginica) en un seul macro-groupe car elles sont très proches. La Silhouette est excellente uniquement parce que la distance avec la troisième classe isolée (Setosa) est immense, masquant ainsi la structure réelle des données.
+* **Illusion d'inertie ($k$ trop haut) :** À $k=10$, l'inertie est excellente mais le score de Silhouette s'effondre. Le modèle sur-apprend en fragmentant artificiellement des populations biologiquement homogènes pour satisfaire un critère purement mathématique.
+* **Méthode du coude ($k$ optimal) :** C'est ici que la **méthode du Coude (Elbow)** prend tout son sens. En cartographiant l'évolution de l'inertie, elle permet de détecter visuellement le point d'inflexion exact à **$k=3$**. Ce point représente l'équilibre parfait : l'algorithme cesse de segmenter dès que le gain de structure s'amoindrit, offrant un modèle hautement interprétable et en parfaite adéquation avec la réalité du terrain.
 
 Pour valider cette intuition géométrique directement sur le modèle personnalisé, le protocole suivant a été appliqué :
 

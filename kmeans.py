@@ -1,4 +1,8 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 
 def euclidean_distance(x1, x2):
     """
@@ -98,8 +102,6 @@ class KMeansMaison:
 # =====================================================================
 
 if __name__ == "__main__":
-    from sklearn.datasets import load_iris
-    from sklearn.cluster import KMeans
 
     print("\n=== BENCHMARK: K-MEANS MAISON VS SCIKIT-LEARN SUR IRIS ===")
 
@@ -109,33 +111,38 @@ if __name__ == "__main__":
 
     # 2. CONFIGURATION DU NOMBRE DE CLUSTERS 
     CHOIX_K = 10
-    np.random.seed(42) # reproducibilité des résultats pour le model maison
+    np.random.seed(42)  # Reproductibilité des résultats pour le modèle maison
 
     # 3. Instanciation et entraînement
     model_maison = KMeansMaison(n_clusters=CHOIX_K)
     model_maison.fit(X)
 
-    #4 CONFIGURATION ET ENTRAÎNEMENT DU MODÈLE SCIKIT-LEARN
+    # 4. CONFIGURATION ET ENTRAÎNEMENT DU MODÈLE SCIKIT-LEARN
     model_sklearn = KMeans(n_clusters=CHOIX_K, random_state=42, n_init=10, max_iter=100)
     model_sklearn.fit(X)
 
-    # 4. AFFICHAGE DU COMPARATIF DES RÉSULTATS
+    # 5. CALCUL DES SCORES DE SILHOUETTE
+    sil_maison = silhouette_score(X, model_maison.labels)
+    sil_sklearn = silhouette_score(X, model_sklearn.labels_)
+
+    # 6. AFFICHAGE DU COMPARATIF DES RÉSULTATS
     print("\n--------------------------------------------------")
-    print(f" COMPARAISON DE L'INERTIE (Pour k = {CHOIX_K})")
-    print(f"-> Inertie K-Means Maison      : {model_maison.inertia:.2f}")
+    print(f" COMPARAISON DES PERFORMANCES (Pour k = {CHOIX_K})")
+    print(f"-> Inertie K-Means Maison       : {model_maison.inertia:.2f}")
     print(f"-> Inertie K-Means Scikit-Learn : {model_sklearn.inertia_:.2f}")
+    print(f"-> Silhouette K-Means Maison    : {sil_maison:.4f}")      
+    print(f"-> Silhouette Scikit-Learn      : {sil_sklearn:.4f}")     
     print("--------------------------------------------------")
     
     print("\n  COMPARAISON DES 10 PREMIERS LABELS")
-    print(f"-> Labels Maison      : {model_maison.labels[:10].astype(int)}")
+    print(f"-> Labels Maison       : {model_maison.labels[:10].astype(int)}")
     print(f"-> Labels Scikit-Learn : {model_sklearn.labels_[:10]}")
     print("--------------------------------------------------")
 
 
 # =====================================================================
     # VISUALISATION EN 3D Modèle Maison
-    # =====================================================================
-    import matplotlib.pyplot as plt
+# =====================================================================
 
     names = iris.feature_names
     customcmap = "tab10"  
@@ -159,14 +166,14 @@ if __name__ == "__main__":
 
 # =====================================================================
     # MÉTHODE DU COUDE AVEC LE MODÈLE MAISON
-    # =====================================================================
+# =====================================================================
 
     # 1. Calcul de l'inertie pour k allant de 1 à 10
     inerties_maison = []
     k_range = range(1, 11)
 
     for k in k_range:
-        # On replante la graine à chaque itération pour stabiliser le tirage de chaque k
+
         np.random.seed(42) 
         
         model = KMeansMaison(n_clusters=k, max_iter=100)
@@ -176,13 +183,13 @@ if __name__ == "__main__":
     # 2. Création de la visualisation "Elbow"
     plt.figure(figsize=(9, 5))
 
-    # Tracé de la courbe de ton modèle (en orange/marron pour changer de scikit-learn)
+    # Tracé de la courbe 
     plt.plot(k_range, inerties_maison, marker='o', linestyle='--', color='#ff7f0e', linewidth=2, markersize=8)
 
     # Ligne verticale pour marquer le coude optimal à k = 3
     plt.axvline(x=3, color='#d62728', linestyle=':', linewidth=2, label='Coude optimal (k = 3)')
 
-    # Habillage du graphique
+    # Affichage
     plt.title("Méthode du Coude (Elbow Method) - Modèle KMeans Maison", fontsize=14, fontweight='bold', pad=15)
     plt.xlabel("Nombre de clusters (k)", fontsize=12)
     plt.ylabel("Inertie intra-classe globale", fontsize=12)
