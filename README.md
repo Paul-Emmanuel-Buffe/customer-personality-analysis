@@ -256,8 +256,9 @@ class KMeansMaison:
         for cluster_idx, point_indices in enumerate(clusters):
             for idx in point_indices:
                 self.inertia += euclidean_distance(X[idx], self.centroids[int(self.labels[idx])]) ** 2
-
 ```
+
+![K-Means Maison Architecture](customers_ressources/kmeans_home_made.png)
 
 ---
 
@@ -287,7 +288,6 @@ if __name__ == "__main__":
     # 4. CONFIGURATION ET ENTRAÎNEMENT DU MODÈLE SCIKIT-LEARN
     model_sklearn = KMeans(n_clusters=CHOIX_K, random_state=42, n_init=10, max_iter=100)
     model_sklearn.fit(X)
-
 ```
 
 ---
@@ -297,19 +297,16 @@ if __name__ == "__main__":
 L'exécution de ce benchmark met en évidence deux comportements distincts induits par les stratégies d'initialisation des deux modèles.
 
 #### 1. Optimisation de l'Inertie et Rôle du Multi-Start
-
-* **Inertie K-Means Maison :** 28.29
-* **Inertie K-Means Scikit-Learn :** 25.97
+- **Inertie K-Means Maison :** 28.29
+- **Inertie K-Means Scikit-Learn :** 25.97
 
 L'algorithme de Scikit-Learn atteint une inertie globale plus faible, ce qui traduit des clusters géométriquement plus denses et mieux optimisés. Cet écart provient directement du paramètre `n_init=10`. Alors que le modèle personnalisé s'exécute en une seule tentative ("single-shot") dépendante du tirage initialisé par `np.random.seed(42)`, Scikit-Learn effectue 10 lancements indépendants complets et ne conserve que la meilleure convergence. Cette méthode permet d'éviter les pièges des minima locaux, fréquents lorsque la valeur de $k$ est élevée.
 
 #### 2. Divergence de Frontières et Partage des Données
-
 L'examen des 10 premiers échantillons révèle une indexation et une répartition structurellement différentes :
-
-* **Labels Maison :** `[5 5 5 5 5 1 5 5 5 5]`
-* **Labels Scikit-Learn :** `[2 8 8 8 2 7 8 2 8 8]`
+- **Labels Maison :** `[5 5 5 5 5 1 5 5 5 5]`
+- **Labels Scikit-Learn :** `[2 8 8 8 2 7 8 2 8 8]`
 
 Au-delà de la simple permutation des numéros de groupes (liée à l'ordre d'attribution des centres au départ), les frontières de décision divergent. Par exemple, Scikit-Learn sépare la première et la deuxième fleur (labels 2 et 8) là où le modèle maison les maintient au sein d'un même groupe (label 5). Le modèle de référence parvient à raffiner la fragmentation des données grâce à des centroïdes initiaux mieux positionnés dans l'espace.
 
-```
+![Visualisation de la Clusterisation k=10](customers_ressources/graph_clustering_k_10.png)
