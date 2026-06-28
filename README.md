@@ -310,3 +310,43 @@ L'examen des 10 premiers échantillons révèle une indexation et une répartiti
 Au-delà de la simple permutation des numéros de groupes (liée à l'ordre d'attribution des centres au départ), les frontières de décision divergent. Par exemple, Scikit-Learn sépare la première et la deuxième fleur (labels 2 et 8) là où le modèle maison les maintient au sein d'un même groupe (label 5). Le modèle de référence parvient à raffiner la fragmentation des données grâce à des centroïdes initiaux mieux positionnés dans l'espace.
 
 ![Visualisation de la Clusterisation k=10](customers_ressources/graph_clustering_k_10.png)
+
+### D. Arbitrage de k : Entre Illusion Mathématique et Réalité Métier
+
+L'analyse des variations du nombre de clusters met en lumière la nécessité de trouver un équilibre critique entre performance brute et interprétabilité :
+
+* **Sous-apprentissage (k trop bas) :** Échoue à capturer la complexité réelle en fusionnant à tort des groupes distincts.
+* **Illusion d'inertie (k trop haut) :** Offre un score d'inertie faussement parfait qui cache un surapprentissage par fragmentation inutile des groupes naturels (ex: $k=10$ sur Iris).
+* **Méthode du coude (k optimal) :** Repère l'inflexion graphique ($k=3$ sur Iris) pour stopper la segmentation au point d'équilibre parfait entre structure réelle et surapprentissage.
+
+Pour valider cette intuition géométrique directement sur le modèle personnalisé, le protocole suivant a été appliqué :
+
+```python
+# 1. Calcul de l'inertie pour k allant de 1 à 10
+inerties_maison = []
+k_range = range(1, 11)
+
+for k in k_range:
+    np.random.seed(42) # Fixation de la graine pour stabiliser le tirage de chaque k
+    model = KMeansMaison(n_clusters=k, max_iter=100)
+    model.fit(X)
+    inerties_maison.append(model.inertia)
+
+# 2. Création de la visualisation "Elbow"
+plt.figure(figsize=(9, 5))
+plt.plot(k_range, inerties_maison, marker='o', linestyle='--', color='#ff7f0e', linewidth=2, markersize=8)
+plt.axvline(x=3, color='#d62728', linestyle=':', linewidth=2, label='Coude optimal (k = 3)')
+
+plt.title("Méthode du Coude (Elbow Method) - Modèle KMeans Maison", fontsize=14, fontweight='bold', pad=15)
+plt.xlabel("Nombre de clusters (k)", fontsize=12)
+plt.ylabel("Inertie intra-classe globale", fontsize=12)
+plt.xticks(k_range)
+plt.grid(True, linestyle=':', alpha=0.6)
+plt.legend(fontsize=11, loc='upper right')
+
+plt.tight_layout()
+plt.savefig("customers_ressources/elbow.png") # Enregistrement automatique de l'image
+plt.show()
+```
+
+![Méthode du Coude Maison](customers_ressources/elbow.png)

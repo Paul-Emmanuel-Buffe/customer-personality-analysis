@@ -96,6 +96,7 @@ class KMeansMaison:
 # =====================================================================
 # BLOC EXÉCUTION 
 # =====================================================================
+
 if __name__ == "__main__":
     from sklearn.datasets import load_iris
     from sklearn.cluster import KMeans
@@ -154,4 +155,40 @@ if __name__ == "__main__":
     ax.set_zlabel(names[2], fontsize=12)
     ax.set_title(f"K-Means Clusters (Modèle Maison, k={CHOIX_K})", fontsize=14, fontweight='bold')
 
+    plt.show()
+
+# =====================================================================
+    # MÉTHODE DU COUDE AVEC LE MODÈLE MAISON
+    # =====================================================================
+
+    # 1. Calcul de l'inertie pour k allant de 1 à 10
+    inerties_maison = []
+    k_range = range(1, 11)
+
+    for k in k_range:
+        # On replante la graine à chaque itération pour stabiliser le tirage de chaque k
+        np.random.seed(42) 
+        
+        model = KMeansMaison(n_clusters=k, max_iter=100)
+        model.fit(X)
+        inerties_maison.append(model.inertia)
+
+    # 2. Création de la visualisation "Elbow"
+    plt.figure(figsize=(9, 5))
+
+    # Tracé de la courbe de ton modèle (en orange/marron pour changer de scikit-learn)
+    plt.plot(k_range, inerties_maison, marker='o', linestyle='--', color='#ff7f0e', linewidth=2, markersize=8)
+
+    # Ligne verticale pour marquer le coude optimal à k = 3
+    plt.axvline(x=3, color='#d62728', linestyle=':', linewidth=2, label='Coude optimal (k = 3)')
+
+    # Habillage du graphique
+    plt.title("Méthode du Coude (Elbow Method) - Modèle KMeans Maison", fontsize=14, fontweight='bold', pad=15)
+    plt.xlabel("Nombre de clusters (k)", fontsize=12)
+    plt.ylabel("Inertie intra-classe globale", fontsize=12)
+    plt.xticks(k_range)
+    plt.grid(True, linestyle=':', alpha=0.6)
+    plt.legend(fontsize=11, loc='upper right')
+
+    plt.tight_layout()
     plt.show()
