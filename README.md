@@ -153,3 +153,163 @@ Le score global du modèle est la moyenne des scores $s(i)$ de toutes les observ
 * **Proche de -1 :** Les points ont été affectés au mauvais cluster (ils sont plus proches du groupe voisin que du leur).
 
 ![Clusters Space Header](customers_ressources/score_silhouette.png)
+
+Voici le code Markdown complet, prêt à être copié et collé directement dans ton fichier `README.md` :
+
+## 4. Implémentation Personnalisée et Benchmark
+
+### A. Algorithme K-Means "Maison"
+
+Pour maîtriser les mécanismes géométriques du partitionnement, l'algorithme K-Means a été entièrement réimplémenté en Python à l'aide de la bibliothèque NumPy. 
+
+```python
+import numpy as np
+
+def euclidean_distance(x1, x2):
+    """
+    Calcul de la distance euclidienne entre deux points dans un espace n-dimensionnel.
+    Parametres :
+    x1 (array-like): Coordonnées du point1 .
+    x2 (array-like): Coordonnées du point2 .
+    Returns:
+    nombre flottant de la distance euclidienne.
+    """
+    distance = np.sqrt(np.sum((x1 - x2) ** 2))
+    return distance
+
+class KMeansMaison:
+    def __init__(self, n_clusters=3, max_iter=100):
+        """ 
+        CONSTRUCTEUR: Configurtion  du modèle K-Means.
+        -k: Nombre de groupes (clusters) à former.
+        -max_iter: Nombre maximum d'itérations pour l'algorithme.
+        """
+        self.k = n_clusters 
+        self.max_iter = max_iter
+        self.centroids = None     
+        self.labels = None        
+        self.inertia = None       
+    
+    def initialize_centroids(self, X): 
+        """
+        ETAPE 1: Le point de départ
+        On choisit aléatoirement k points comme centroïdes initiaux.
+        """
+        centroids_idx = np.random.choice(X.shape[0], self.k, replace=False)
+        return X[centroids_idx]  
+
+
+    def assign_clusters(self, X, centroids):
+        """ 
+        ETAPE 2: Le tri des données
+        """
+        clusters = [[] for _ in range(self.k)]
+
+        for idx_point, point in enumerate(X):
+            distances = [euclidean_distance(point, center) for center in centroids]
+            cluster_idx = np.argmin(distances)
+            clusters[cluster_idx].append(idx_point)
+        return clusters
+
+
+    def update_centroids(self, X, clusters):
+        """
+        ÉTAPE 3 : Le déménagement des centres.
+        """
+        centroids = np.zeros((self.k, X.shape[1]))
+
+        for i, cluster in enumerate(clusters):
+            if len(cluster) == 0:
+                centroids[i] = self.centroids[i]  
+            else:
+                centroids[i] = X[cluster].mean(axis=0)
+
+        return centroids
+
+    def fit(self, X):
+        """
+        Orcherstration de l'algorithme K-Means La boucle d'entrainement
+        """
+        # Étape 1 : Initialisation des centroïdes
+        self.centroids = self.initialize_centroids(X) 
+
+        for _ in range(self.max_iter):
+            # Étape 2 : Assignation des échantillons aux clusters
+            clusters = self.assign_clusters(X, self.centroids)
+
+            prev_centroids = self.centroids
+            
+            # Les centres se déplacent vers la moyenne de leur groupe
+            self.centroids = self.update_centroids(X, clusters)
+
+            # Condition d'arrêt
+            if np.allclose(self.centroids, prev_centroids):
+                break
+
+        # Attribution des labels
+        self.labels = np.zeros(X.shape[0])
+        for cluster_idx, point_indices in enumerate(clusters):
+            self.labels[point_indices] = cluster_idx
+
+        # Calcul de l'inertie
+        self.inertia = 0
+        for cluster_idx, point_indices in enumerate(clusters):
+            for idx in point_indices:
+                self.inertia += euclidean_distance(X[idx], self.centroids[int(self.labels[idx])]) ** 2
+
+```
+
+---
+
+### B. Confrontation au Standard Industriel (Benchmark)
+
+Afin de valider la rigueur mathématique du code développé, un protocole de test comparatif a été mis en place. Pour simuler une phase d'exploration à l'aveugle, le jeu de données Iris a été traité sans prendre en compte ses 3 classes réelles, en imposant volontairement une sur-segmentation forte à 10 clusters ($k = 10$).
+
+```python
+if __name__ == "__main__":
+    from sklearn.datasets import load_iris
+    from sklearn.cluster import KMeans
+
+    print("\n=== BENCHMARK: K-MEANS MAISON VS SCIKIT-LEARN SUR IRIS ===")
+
+    # 1. Chargement des données Iris
+    iris = load_iris()
+    X = iris.data
+
+    # 2. CONFIGURATION DU NOMBRE DE CLUSTERS 
+    CHOIX_K = 10
+    np.random.seed(42) # reproducibilité des résultats pour le model maison
+
+    # 3. Instanciation et entraînement
+    model_maison = KMeansMaison(n_clusters=CHOIX_K)
+    model_maison.fit(X)
+
+    # 4. CONFIGURATION ET ENTRAÎNEMENT DU MODÈLE SCIKIT-LEARN
+    model_sklearn = KMeans(n_clusters=CHOIX_K, random_state=42, n_init=10, max_iter=100)
+    model_sklearn.fit(X)
+
+```
+
+---
+
+### C. Analyse Synthétique des Résultats
+
+L'exécution de ce benchmark met en évidence deux comportements distincts induits par les stratégies d'initialisation des deux modèles.
+
+#### 1. Optimisation de l'Inertie et Rôle du Multi-Start
+
+* **Inertie K-Means Maison :** 28.29
+* **Inertie K-Means Scikit-Learn :** 25.97
+
+L'algorithme de Scikit-Learn atteint une inertie globale plus faible, ce qui traduit des clusters géométriquement plus denses et mieux optimisés. Cet écart provient directement du paramètre `n_init=10`. Alors que le modèle personnalisé s'exécute en une seule tentative ("single-shot") dépendante du tirage initialisé par `np.random.seed(42)`, Scikit-Learn effectue 10 lancements indépendants complets et ne conserve que la meilleure convergence. Cette méthode permet d'éviter les pièges des minima locaux, fréquents lorsque la valeur de $k$ est élevée.
+
+#### 2. Divergence de Frontières et Partage des Données
+
+L'examen des 10 premiers échantillons révèle une indexation et une répartition structurellement différentes :
+
+* **Labels Maison :** `[5 5 5 5 5 1 5 5 5 5]`
+* **Labels Scikit-Learn :** `[2 8 8 8 2 7 8 2 8 8]`
+
+Au-delà de la simple permutation des numéros de groupes (liée à l'ordre d'attribution des centres au départ), les frontières de décision divergent. Par exemple, Scikit-Learn sépare la première et la deuxième fleur (labels 2 et 8) là où le modèle maison les maintient au sein d'un même groupe (label 5). Le modèle de référence parvient à raffiner la fragmentation des données grâce à des centroïdes initiaux mieux positionnés dans l'espace.
+
+```

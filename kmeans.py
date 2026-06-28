@@ -15,17 +15,17 @@ def euclidean_distance(x1, x2):
 class KMeansMaison:
     def __init__(self, n_clusters=3, max_iter=100):
         """ 
-        CONSTRUCTEUR: Configurtion initile du modèle K-Means.
+        CONSTRUCTEUR: Configurtion  du modèle K-Means.
         -k: Nombre de groupes (clusters) à former.
         -max_iter: Nombre maximum d'itérations pour l'algorithme.
         """
-        self.k = n_clusters # CORRIGÉ : utilise n_clusters reçu en argument
+        self.k = n_clusters 
         self.max_iter = max_iter
         self.centroids = None     
         self.labels = None        
         self.inertia = None       
     
-    def initialize_centroids(self, X): # CORRIGÉ : orthographe de initialize
+    def initialize_centroids(self, X): 
         """
         ETAPE 1: Le point de départ
         On choisit aléatoirement k points comme centroïdes initiaux.
@@ -91,3 +91,67 @@ class KMeansMaison:
         for cluster_idx, point_indices in enumerate(clusters):
             for idx in point_indices:
                 self.inertia += euclidean_distance(X[idx], self.centroids[int(self.labels[idx])]) ** 2
+
+
+# =====================================================================
+# BLOC EXÉCUTION 
+# =====================================================================
+if __name__ == "__main__":
+    from sklearn.datasets import load_iris
+    from sklearn.cluster import KMeans
+
+    print("\n=== BENCHMARK: K-MEANS MAISON VS SCIKIT-LEARN SUR IRIS ===")
+
+    # 1. Chargement des données Iris
+    iris = load_iris()
+    X = iris.data
+
+    # 2. CONFIGURATION DU NOMBRE DE CLUSTERS 
+    CHOIX_K = 10
+    np.random.seed(42) # reproducibilité des résultats pour le model maison
+
+    # 3. Instanciation et entraînement
+    model_maison = KMeansMaison(n_clusters=CHOIX_K)
+    model_maison.fit(X)
+
+    #4 CONFIGURATION ET ENTRAÎNEMENT DU MODÈLE SCIKIT-LEARN
+    model_sklearn = KMeans(n_clusters=CHOIX_K, random_state=42, n_init=10, max_iter=100)
+    model_sklearn.fit(X)
+
+    # 4. AFFICHAGE DU COMPARATIF DES RÉSULTATS
+    print("\n--------------------------------------------------")
+    print(f" COMPARAISON DE L'INERTIE (Pour k = {CHOIX_K})")
+    print(f"-> Inertie K-Means Maison      : {model_maison.inertia:.2f}")
+    print(f"-> Inertie K-Means Scikit-Learn : {model_sklearn.inertia_:.2f}")
+    print("--------------------------------------------------")
+    
+    print("\n  COMPARAISON DES 10 PREMIERS LABELS")
+    print(f"-> Labels Maison      : {model_maison.labels[:10].astype(int)}")
+    print(f"-> Labels Scikit-Learn : {model_sklearn.labels_[:10]}")
+    print("--------------------------------------------------")
+
+
+# =====================================================================
+    # VISUALISATION EN 3D Modèle Maison
+    # =====================================================================
+    import matplotlib.pyplot as plt
+
+    names = iris.feature_names
+    customcmap = "tab10"  
+
+
+    fig = plt.figure(figsize=(10, 8))
+    ax = fig.add_subplot(projection='3d')
+
+    # Affichage des points selon les prédictions dumodèle
+    ax.scatter(X[:, 3], X[:, 0], X[:, 2], 
+               c=model_maison.labels.astype(float), 
+               edgecolor="k", s=150, cmap=customcmap)
+
+    ax.view_init(20, -50)
+    ax.set_xlabel(names[3], fontsize=12)
+    ax.set_ylabel(names[0], fontsize=12)
+    ax.set_zlabel(names[2], fontsize=12)
+    ax.set_title(f"K-Means Clusters (Modèle Maison, k={CHOIX_K})", fontsize=14, fontweight='bold')
+
+    plt.show()
