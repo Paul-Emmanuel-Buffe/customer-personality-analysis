@@ -1,7 +1,3 @@
-Voici la version intégrale et mise à jour de votre **README.md**. Les éléments pédagogiques sur DBSCAN ont été intégrés dans la section 2.B, et une sous-section explicative comparant la méthode du coude (K-Means) et la $k$-distance (DBSCAN) a été ajoutée dans la section 3 pour garantir une continuité parfaite.
-
----
-
 ```markdown
 # Customer Personality Analysis
 
